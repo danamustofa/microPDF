@@ -1,162 +1,198 @@
-# 📚 Dokumentasi PDF Compressor
+# 📚 Dokumentasi microPDF
 
-## Navigasi Cepat
+Selamat datang di dokumentasi microPDF - aplikasi kompresi PDF yang simple, cepat, dan elegan.
 
-### 🚀 Untuk User
-
-#### Aplikasi Desktop (Electron)
-- **[ELECTRON_GUIDE.md](ELECTRON_GUIDE.md)** - Panduan lengkap aplikasi desktop
-  - Quick start & instalasi
-  - Cara menggunakan
-  - Preset kualitas
-  - Troubleshooting
-  - Tips & best practices
-
-#### CLI Script (Python)
-- **[QUICK_START.md](QUICK_START.md)** - Panduan cepat CLI
-- **[USAGE_EXAMPLES.md](USAGE_EXAMPLES.md)** - Contoh penggunaan CLI
-
-### 🛠️ Untuk Developer
-
-- **[TECHNICAL_DETAILS.md](TECHNICAL_DETAILS.md)** - Detail teknis
-  - Compression algorithm
-  - Python implementation
-  - Electron architecture
-  - IPC communication
-  - UI components & animations
-  - Performance optimization
-  - Security considerations
-
-- **[README.md](README.md)** - API reference
-- **[PERBAIKAN_KOMPRESI.md](PERBAIKAN_KOMPRESI.md)** - Troubleshooting teknis
-
-### 📝 Update & History
-
-- **[CHANGELOG.md](CHANGELOG.md)** - Riwayat perubahan versi
-- **[SUMMARY_UPDATE.md](SUMMARY_UPDATE.md)** - Ringkasan update terbaru
+**Version**: 2026.1.3 (with custom quality)  
+**Last Updated**: April 30, 2026
 
 ---
 
-## 🎯 Mulai dari Mana?
+## 🚀 Quick Start
 
-### Saya ingin menggunakan aplikasi desktop
-→ Baca **[ELECTRON_GUIDE.md](ELECTRON_GUIDE.md)**
+### Untuk Pengguna Aplikasi Desktop
+Baca **[ELECTRON_GUIDE.md](ELECTRON_GUIDE.md)** untuk panduan lengkap menggunakan aplikasi desktop.
 
-### Saya ingin menggunakan CLI script
-→ Baca **[QUICK_START.md](QUICK_START.md)** dan **[USAGE_EXAMPLES.md](USAGE_EXAMPLES.md)**
-
-### Saya ingin memahami cara kerjanya
-→ Baca **[TECHNICAL_DETAILS.md](TECHNICAL_DETAILS.md)**
-
-### Saya mengalami masalah
-→ Baca **[ELECTRON_GUIDE.md](ELECTRON_GUIDE.md)** (bagian Troubleshooting) atau **[PERBAIKAN_KOMPRESI.md](PERBAIKAN_KOMPRESI.md)**
-
-### Saya ingin tahu apa yang baru
-→ Baca **[CHANGELOG.md](CHANGELOG.md)** atau **[SUMMARY_UPDATE.md](SUMMARY_UPDATE.md)**
+### Untuk Pengguna CLI Script
+Baca **[QUICK_START.md](QUICK_START.md)** untuk memulai dengan command-line interface.
 
 ---
 
-## 📖 Struktur Dokumentasi
+## 📖 Daftar Dokumentasi
+
+### 🎯 User Guides
+
+| Dokumen | Deskripsi |
+|---------|-----------|
+| **[ELECTRON_GUIDE.md](ELECTRON_GUIDE.md)** | Panduan lengkap aplikasi desktop Electron |
+| **[QUICK_START.md](QUICK_START.md)** | Panduan cepat untuk CLI script |
+| **[USAGE_EXAMPLES.md](USAGE_EXAMPLES.md)** | Contoh penggunaan CLI dengan berbagai skenario |
+
+### 🛠️ Developer Documentation
+
+| Dokumen | Deskripsi |
+|---------|-----------|
+| **[TECHNICAL_DETAILS.md](TECHNICAL_DETAILS.md)** | Detail teknis arsitektur dan implementasi |
+| **[README.md](README.md)** | API reference untuk library Python |
+| **[BUG_FIXES.md](BUG_FIXES.md)** | Dokumentasi bug fixes yang telah dilakukan |
+| **[CUSTOM_QUALITY.md](CUSTOM_QUALITY.md)** | Dokumentasi fitur custom quality (1-49%) |
+
+### 📋 Project Information
+
+| Dokumen | Deskripsi | Lokasi |
+|---------|-----------|--------|
+| **CHANGELOG.md** | Riwayat perubahan versi | `../CHANGELOG.md` |
+| **PROJECT_INFO.md** | Struktur project & cleanup history | `PROJECT_INFO.md` |
+| **README.md** | Dokumentasi utama project | `../README.md` |
+| **INSTALLATION.md** | Panduan instalasi lengkap | `../INSTALLATION.md` |
+| **CONTRIBUTING.md** | Panduan kontribusi | `../CONTRIBUTING.md` |
+
+---
+
+## 🎯 Navigasi Cepat
+
+### Saya ingin...
+
+#### 📱 Menggunakan aplikasi desktop
+→ **[ELECTRON_GUIDE.md](ELECTRON_GUIDE.md)** - Panduan lengkap dari instalasi hingga troubleshooting
+
+#### 💻 Menggunakan CLI script
+→ **[QUICK_START.md](QUICK_START.md)** - Mulai dengan mode interaktif  
+→ **[USAGE_EXAMPLES.md](USAGE_EXAMPLES.md)** - Lihat contoh penggunaan
+
+#### 🔧 Memahami cara kerja aplikasi
+→ **[TECHNICAL_DETAILS.md](TECHNICAL_DETAILS.md)** - Arsitektur, algoritma, dan implementasi
+
+#### 🐛 Mengatasi masalah
+→ **[ELECTRON_GUIDE.md](ELECTRON_GUIDE.md)** - Bagian Troubleshooting  
+→ **[BUG_FIXES.md](BUG_FIXES.md)** - Perbaikan bug yang telah dilakukan
+
+#### 📦 Menginstall aplikasi
+→ **[INSTALLATION.md](../INSTALLATION.md)** - Panduan instalasi untuk semua platform
+
+#### 🤝 Berkontribusi ke project
+→ **[CONTRIBUTING.md](../CONTRIBUTING.md)** - Panduan kontribusi
+
+#### 📜 Melihat riwayat perubahan
+→ **[CHANGELOG.md](../CHANGELOG.md)** - Semua perubahan dari versi ke versi
+
+#### 🎚️ Menggunakan custom quality
+→ **[CUSTOM_QUALITY.md](CUSTOM_QUALITY.md)** - Panduan fitur custom quality (1-49%)
+
+#### 📁 Memahami struktur project
+→ **[PROJECT_INFO.md](PROJECT_INFO.md)** - Struktur lengkap dan maintenance guide
+
+---
+
+## 📊 Struktur Dokumentasi
 
 ```
-docs/
-├── INDEX.md                    # File ini (navigasi)
+compresfile/
+├── README.md                    # Dokumentasi utama project
+├── CHANGELOG.md                 # Riwayat perubahan
+├── INSTALLATION.md              # Panduan instalasi
+├── CONTRIBUTING.md              # Panduan kontribusi
 │
-├── 🚀 USER GUIDES
-│   ├── ELECTRON_GUIDE.md       # Panduan aplikasi desktop (LENGKAP)
-│   ├── QUICK_START.md          # Panduan cepat CLI
-│   └── USAGE_EXAMPLES.md       # Contoh penggunaan CLI
-│
-├── 🛠️ DEVELOPER DOCS
-│   ├── TECHNICAL_DETAILS.md    # Detail teknis (LENGKAP)
-│   ├── README.md               # API reference
-│   └── PERBAIKAN_KOMPRESI.md   # Troubleshooting teknis
-│
-└── 📝 UPDATES
-    ├── CHANGELOG.md            # Riwayat perubahan
-    └── SUMMARY_UPDATE.md       # Ringkasan update
+└── docs/
+    ├── INDEX.md                 # File ini (navigasi) 📍
+    │
+    ├── 🎯 USER GUIDES
+    │   ├── ELECTRON_GUIDE.md    # Panduan aplikasi desktop
+    │   ├── QUICK_START.md       # Panduan cepat CLI
+    │   └── USAGE_EXAMPLES.md    # Contoh penggunaan CLI
+    │
+    ├── 🛠️ DEVELOPER DOCS
+    │   ├── TECHNICAL_DETAILS.md # Detail teknis
+    │   ├── README.md            # API reference
+    │   ├── BUG_FIXES.md         # Bug fixes history
+    │   └── CUSTOM_QUALITY.md    # Custom quality feature
+    │
+    └── 📋 PROJECT INFO
+        └── PROJECT_INFO.md      # Struktur & maintenance
 ```
-
----
-
-## 🔍 Topik Spesifik
-
-### Instalasi & Setup
-- Electron App: [ELECTRON_GUIDE.md](ELECTRON_GUIDE.md) → Quick Start
-- CLI Script: [QUICK_START.md](QUICK_START.md)
-
-### Cara Menggunakan
-- Electron App: [ELECTRON_GUIDE.md](ELECTRON_GUIDE.md) → Cara Menggunakan
-- CLI Script: [USAGE_EXAMPLES.md](USAGE_EXAMPLES.md)
-
-### Preset Kualitas
-- [ELECTRON_GUIDE.md](ELECTRON_GUIDE.md) → Preset Kualitas
-
-### Troubleshooting
-- Electron App: [ELECTRON_GUIDE.md](ELECTRON_GUIDE.md) → Troubleshooting
-- CLI Script: [PERBAIKAN_KOMPRESI.md](PERBAIKAN_KOMPRESI.md)
-
-### Technical Details
-- Algorithm: [TECHNICAL_DETAILS.md](TECHNICAL_DETAILS.md) → Compression Algorithm
-- Architecture: [TECHNICAL_DETAILS.md](TECHNICAL_DETAILS.md) → Electron Architecture
-- Performance: [TECHNICAL_DETAILS.md](TECHNICAL_DETAILS.md) → Performance Optimization
-
-### Build & Deploy
-- [ELECTRON_GUIDE.md](ELECTRON_GUIDE.md) → Build untuk Production
 
 ---
 
 ## 🚀 Quick Reference
 
-### Electron App
+### Desktop App (Electron)
 ```bash
 # Install dependencies
 npm install
+pip install -r requirements.txt
 
 # Run app
 npm start
 
 # Build for production
-npm run build:win
+npm run build:win    # Windows
+npm run build:mac    # macOS
+npm run build:linux  # Linux
 ```
 
-### CLI Script
+### CLI Script (Python)
 ```bash
 # Install dependencies
 pip install -r requirements.txt
 
-# Interactive mode
+# Interactive mode (recommended)
 python compress.py
 
 # Quick mode
-python compress.py -q
+python compress.py -q 75
 
 # Single file
-python compress.py -s input.pdf
+python compress.py -s input.pdf output.pdf 80
 
 # Batch folder
-python compress.py -b folder_pdfs
+python compress.py -b input_folder output_folder 70
 ```
 
 ---
 
-## ✨ Highlights
+## ✨ Fitur Utama
 
-### Dokumentasi Baru (v2.3.0)
-- ✅ **ELECTRON_GUIDE.md** - Panduan lengkap aplikasi desktop (konsolidasi 7 file)
-- ✅ **TECHNICAL_DETAILS.md** - Detail teknis lengkap (konsolidasi 3 file)
-- ✅ Struktur dokumentasi lebih terorganisir
-- ✅ Navigasi lebih mudah
+### Desktop Application
+- 🖱️ Drag & drop interface
+- 📦 Batch processing (multiple files)
+- 🎚️ 6 quality options (90%, 80%, 70%, 60%, 50%, Custom 1-49%)
+- 📊 Real-time progress dengan page counter
+- 📁 Custom output folder
+- 📈 Compression statistics
+- 🎨 Modern blue theme
 
-### Fitur Terbaru
-- ✅ Smooth progress animation
-- ✅ Real-time page counter
-- ✅ Blue color theme (Submarine Blue, Light Blue, Gold Yellow)
-- ✅ Improved UI/UX
+### CLI Script
+- 🎯 4 mode operasi (interactive, single, batch, quick)
+- ⚙️ Adjustable quality (1-100)
+- 📊 Progress display
+- 📈 Compression statistics
+- 🔄 Auto output path generation
 
 ---
 
-**Version**: 2.3.0  
-**Last Updated**: April 2026  
-**Total Docs**: 7 files (dari 17 files sebelumnya)
+## 📞 Bantuan & Support
 
+Jika Anda mengalami masalah:
+
+1. **Cek dokumentasi** - Baca panduan yang relevan
+2. **Troubleshooting** - Lihat bagian troubleshooting di [ELECTRON_GUIDE.md](ELECTRON_GUIDE.md)
+3. **Bug fixes** - Cek [BUG_FIXES.md](BUG_FIXES.md) untuk bug yang sudah diperbaiki
+4. **GitHub Issues** - Buat issue baru di repository
+
+---
+
+## 📝 Catatan Versi
+
+**Version**: 2026.1.3 (with custom quality)  
+**Last Updated**: April 30, 2026  
+**Total Docs**: 9 files (organized in docs/)
+
+### Perubahan Terbaru
+- ✅ Perbaikan 7 critical bugs
+- ✅ Fitur custom quality (1-49%)
+- ✅ Konsolidasi dokumentasi
+- ✅ Struktur lebih rapi dan terorganisir
+- ✅ Navigasi lebih mudah
+
+---
+
+**Selamat menggunakan microPDF! 🎉**

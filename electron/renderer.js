@@ -274,8 +274,45 @@ qualityButtons.forEach(btn => {
   btn.addEventListener('click', () => {
     qualityButtons.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    selectedQuality = parseInt(btn.dataset.quality);
+    
+    const customPanel = document.getElementById('customQualityPanel');
+    
+    if (btn.dataset.quality === 'custom') {
+      // Show custom panel
+      customPanel.style.display = 'block';
+      const sliderVal = parseInt(document.getElementById('customQualitySlider').value);
+      selectedQuality = sliderVal;
+      document.getElementById('customQualityDisplay').textContent = sliderVal + '%';
+    } else {
+      // Hide custom panel and use preset
+      customPanel.style.display = 'none';
+      selectedQuality = parseInt(btn.dataset.quality);
+    }
   });
+});
+
+// Custom quality slider — update in real-time
+const customSlider = document.getElementById('customQualitySlider');
+const customQualityValue = document.getElementById('customQualityValue');
+const customQualityDisplay = document.getElementById('customQualityDisplay');
+const customSliderHint = document.getElementById('customSliderHint');
+
+customSlider.addEventListener('input', () => {
+  const val = parseInt(customSlider.value);
+  
+  // Update display
+  customQualityValue.textContent = val + '%';
+  customQualityDisplay.textContent = val + '%';
+  
+  // Update active quality
+  selectedQuality = val;
+  
+  // Show/hide warning based on value
+  if (val < 30) {
+    customSliderHint.style.display = 'block';
+  } else {
+    customSliderHint.style.display = 'none';
+  }
 });
 
 // Select Output Folder
@@ -321,7 +358,9 @@ async function compressBatch() {
   for (let i = 0; i < selectedFiles.length; i++) {
     const filePath = selectedFiles[i];
     const fileName = filePath.split(/[\\/]/).pop();
-    const outputPath = `${outputFolder}\\compressed_${fileName}`;
+    
+    // Bug #7 fix: Send fileName separately, let main.js construct path with path.join()
+    // No hardcoded backslash
     
     // Reset for new file
     totalPagesInFile = 0;
@@ -339,12 +378,13 @@ async function compressBatch() {
     try {
       console.log(`Compressing file ${i + 1}:`, fileName);
       console.log('Input path:', filePath);
-      console.log('Output path:', outputPath);
+      console.log('Output folder:', outputFolder);
       console.log('Quality:', selectedQuality);
       
       const result = await window.electronAPI.compressPDF({
         inputPath: filePath,
-        outputPath: outputPath,
+        outputFolder: outputFolder,
+        fileName: fileName,
         quality: selectedQuality
       });
       

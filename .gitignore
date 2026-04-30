@@ -6,7 +6,7 @@ __pycache__/
 .Python
 *.egg
 *.egg-info/
-dist/
+dist-python/
 build/
 *.pyc
 *.pyo
@@ -23,6 +23,7 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+package-lock.json
 
 # Electron Build Output
 dist/
@@ -32,6 +33,8 @@ out/
 *.AppImage
 *.deb
 *.rpm
+*.nupkg
+RELEASES
 
 # IDE
 .vscode/
@@ -39,12 +42,11 @@ out/
 *.swp
 *.swo
 *~
-.DS_Store
 
 # OS
+.DS_Store
 Thumbs.db
 desktop.ini
-.DS_Store
 
 # Logs
 *.log
@@ -52,3 +54,10 @@ desktop.ini
 # Test files
 test*.pdf
 sample*.pdf
+input/
+output/
+
+# Temporary files
+temp/
+tmp/
+*.tmp

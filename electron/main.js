@@ -84,8 +84,8 @@ ipcMain.handle('get-file-size', async (event, filePath) => {
   }
 });
 
-// Handle PDF compression
-ipcMain.handle('compress-pdf', async (event, { inputPath, outputPath, quality }) => {
+// Extracted compression logic for reuse (Bug #6 fix)
+async function runCompressPDF({ inputPath, outputPath, quality, event }) {
   return new Promise((resolve, reject) => {
     try {
       // Validate inputs
@@ -278,9 +278,31 @@ except Exception as e:
       reject(error);
     }
   });
+}
+
+// Handle PDF compression
+ipcMain.handle('compress-pdf', async (event, data) => {
+  // Bug #7 fix: Handle both old format (outputPath) and new format (outputFolder + fileName)
+  let outputPath;
+  if (data.outputPath) {
+    // Old format - direct outputPath
+    outputPath = data.outputPath;
+  } else if (data.outputFolder && data.fileName) {
+    // New format - construct path safely with path.join()
+    outputPath = path.join(data.outputFolder, `compressed_${data.fileName}`);
+  } else {
+    return Promise.reject(new Error('Missing output path parameters'));
+  }
+  
+  return runCompressPDF({ 
+    inputPath: data.inputPath, 
+    outputPath: outputPath, 
+    quality: data.quality, 
+    event 
+  });
 });
 
-// Handle batch compression
+// Handle batch compression (Bug #6 fix: use extracted function instead of ipcMain.invoke)
 ipcMain.handle('compress-batch', async (event, { files, outputFolder, quality }) => {
   const results = [];
   
@@ -297,10 +319,12 @@ ipcMain.handle('compress-batch', async (event, { files, outputFolder, quality })
         fileName: fileName
       });
       
-      const result = await ipcMain.invoke('compress-pdf', event, {
+      // Use extracted function directly instead of ipcMain.invoke
+      const result = await runCompressPDF({
         inputPath,
         outputPath,
-        quality
+        quality,
+        event
       });
       
       results.push({

@@ -4,8 +4,31 @@ Script untuk mengkompresi file PDF menggunakan PyPDF2 dan Pillow
 
 import os
 from PyPDF2 import PdfReader, PdfWriter
+from PyPDF2.generic import NameObject, NumberObject
 from PIL import Image
 import io
+
+
+def _calc_jpeg_quality(image_quality):
+    """
+    Convert app quality scale (1-100) to JPEG quality (5-95).
+    
+    Mapping:
+    1   -> JPEG 5   (maximum compression, very low quality)
+    30  -> JPEG 20  (aggressive but still readable)
+    49  -> JPEG 38  (just below the Low preset)
+    50  -> JPEG 40  (Low preset)
+    80  -> JPEG 73  (Good preset)
+    90  -> JPEG 84  (High preset)
+    """
+    if image_quality >= 50:
+        # Preset range: 50-100 -> JPEG 40-95
+        q = int(40 + (image_quality - 50) * 1.1)
+    else:
+        # Custom range: 1-49 -> JPEG 5-38
+        q = int(5 + (image_quality - 1) * (33 / 48))
+    
+    return max(5, min(95, q))
 
 
 def compress_pdf_basic(input_path, output_path, compression_level='medium'):
@@ -63,7 +86,7 @@ def compress_pdf_images(input_path, output_path, image_quality=50):
         output_path: Path untuk menyimpan PDF yang sudah dikompresi
         image_quality: Kualitas gambar (1-100, semakin rendah semakin kecil ukuran)
     
-    Note: Fungsi ini mengkompresi gambar dalam PDF berdasarkan kualitas yang ditentukan
+    Note: Gambar yang tidak bisa dikompres akan dipertahankan dalam bentuk aslinya
     """
     try:
         print(f"  Membaca PDF...")
@@ -80,7 +103,7 @@ def compress_pdf_images(input_path, output_path, image_quality=50):
             # Kompresi konten halaman
             try:
                 page.compress_content_streams()
-            except Exception as e:
+            except Exception:
                 pass  # Ignore errors
             
             # Kompresi gambar dalam halaman
@@ -105,20 +128,21 @@ def compress_pdf_images(input_path, output_path, image_quality=50):
                                     # Convert to PIL Image
                                     img = Image.open(io.BytesIO(data))
                                     
-                                    # Compress image based on quality
+                                    # Ensure compatible mode for JPEG
+                                    if img.mode not in ('RGB', 'L', 'CMYK'):
+                                        img = img.convert('RGB')
+                                    
+                                    # Calculate JPEG quality using helper function
+                                    jpeg_quality = _calc_jpeg_quality(image_quality)
+                                    
+                                    # Prepare compressed image
                                     img_byte_arr = io.BytesIO()
-                                    
-                                    # Calculate JPEG quality from our quality parameter
-                                    # Our scale: 50-100 -> JPEG scale: 40-95
-                                    jpeg_quality = int(40 + (image_quality - 50) * 1.1) if image_quality >= 50 else int(image_quality * 0.8)
-                                    jpeg_quality = max(20, min(95, jpeg_quality))
-                                    
                                     img.save(img_byte_arr, format='JPEG', quality=jpeg_quality, optimize=True)
-                                    img_data = img_byte_arr.getvalue()
+                                    new_data = img_byte_arr.getvalue()
                                     
-                                    # Update object with compressed image
-                                    obj._data = img_data
-                                    obj['/Length'] = len(img_data)
+                                    # Apply all changes at once (Bug #4 fix)
+                                    obj._data = new_data
+                                    obj[NameObject('/Length')] = NumberObject(len(new_data))
                                 
                                 # Handle FlateDecode (PNG-like) images
                                 elif filter_type == '/FlateDecode' or (isinstance(filter_type, list) and '/FlateDecode' in filter_type):
@@ -126,37 +150,64 @@ def compress_pdf_images(input_path, output_path, image_quality=50):
                                         data = obj.get_data()
                                         
                                         # Get image properties
-                                        width = obj['/Width']
-                                        height = obj['/Height']
+                                        width = int(obj['/Width'])
+                                        height = int(obj['/Height'])
                                         
                                         # Try to create image
                                         if '/ColorSpace' in obj:
                                             color_space = obj['/ColorSpace']
                                             
-                                            # Handle RGB images
-                                            if color_space == '/DeviceRGB':
-                                                img = Image.frombytes('RGB', (width, height), data)
-                                            elif color_space == '/DeviceGray':
-                                                img = Image.frombytes('L', (width, height), data)
+                                            # Resolve object reference if needed
+                                            if hasattr(color_space, 'get_object'):
+                                                color_space = color_space.get_object()
+                                            
+                                            # Bug #2 fix: Handle array color spaces
+                                            if isinstance(color_space, list):
+                                                cs_name = str(color_space[0]) if color_space else ''
                                             else:
-                                                continue  # Skip unsupported color spaces
+                                                cs_name = str(color_space) if color_space else ''
                                             
-                                            # Compress as JPEG
+                                            # Bug #3 fix: Validate data size before Image.frombytes()
+                                            if cs_name == '/DeviceRGB':
+                                                expected = width * height * 3
+                                                if len(data) < expected:
+                                                    continue  # Skip, keep original
+                                                img = Image.frombytes('RGB', (width, height), data[:expected])
+                                            elif cs_name == '/DeviceGray':
+                                                expected = width * height
+                                                if len(data) < expected:
+                                                    continue  # Skip, keep original
+                                                img = Image.frombytes('L', (width, height), data[:expected])
+                                            elif cs_name == '/DeviceCMYK':
+                                                expected = width * height * 4
+                                                if len(data) < expected:
+                                                    continue  # Skip, keep original
+                                                img = Image.frombytes('CMYK', (width, height), data[:expected])
+                                            else:
+                                                # Bug #1 fix: Unsupported color space - keep original
+                                                # Do NOT modify the object at all
+                                                continue
+                                            
+                                            # Calculate JPEG quality using helper function
+                                            jpeg_quality = _calc_jpeg_quality(image_quality)
+                                            
+                                            # Prepare compressed image
                                             img_byte_arr = io.BytesIO()
-                                            jpeg_quality = int(40 + (image_quality - 50) * 1.1) if image_quality >= 50 else int(image_quality * 0.8)
-                                            jpeg_quality = max(20, min(95, jpeg_quality))
-                                            
                                             img.save(img_byte_arr, format='JPEG', quality=jpeg_quality, optimize=True)
-                                            img_data = img_byte_arr.getvalue()
+                                            new_data = img_byte_arr.getvalue()
                                             
-                                            # Update to DCTDecode (JPEG)
-                                            obj._data = img_data
-                                            obj['/Filter'] = '/DCTDecode'
-                                            obj['/Length'] = len(img_data)
+                                            # Bug #4 fix: Apply all changes at once
+                                            obj._data = new_data
+                                            obj[NameObject('/Filter')] = NameObject('/DCTDecode')
+                                            obj[NameObject('/Length')] = NumberObject(len(new_data))
+                                            
+                                            # Bug #5 fix: Remove DecodeParms after conversion
+                                            if '/DecodeParms' in obj:
+                                                del obj['/DecodeParms']
                                     except:
-                                        pass  # Skip if can't process
-                        except Exception as e:
-                            pass  # Skip problematic images
+                                        pass  # Skip if can't process, keep original
+                        except Exception:
+                            pass  # Skip problematic images, keep original
             
             writer.add_page(page)
         
@@ -188,7 +239,6 @@ def compress_pdf_images(input_path, output_path, image_quality=50):
         print(f"\n✗ Error saat mengkompresi PDF: {str(e)}")
         import traceback
         traceback.print_exc()
-        return False
         return False
 
 

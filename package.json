@@ -1,6 +1,6 @@
 {
   "name": "micropdf",
-  "version": "2026.1.3",
+  "version": "2026.1.4",
   "description": "Simple and elegant PDF compression tool",
   "main": "electron/main.js",
   "scripts": {

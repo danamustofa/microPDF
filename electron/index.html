@@ -74,6 +74,18 @@
               <span class="quality-label">Low</span>
               <span class="quality-value">50%</span>
             </button>
+            <button class="quality-btn" data-quality="custom">
+              <span class="quality-label">Custom</span>
+              <span class="quality-value" id="customQualityDisplay">–</span>
+            </button>
+          </div>
+          <div class="custom-quality-panel" id="customQualityPanel" style="display: none;">
+            <div class="custom-slider-row">
+              <span class="custom-slider-label">Quality</span>
+              <input type="range" id="customQualitySlider" min="1" max="49" value="30" step="1">
+              <span class="custom-slider-value" id="customQualityValue">30%</span>
+            </div>
+            <p class="custom-slider-hint" id="customSliderHint">⚠️ Below 30% images may appear blurry. Use with caution.</p>
           </div>
           <p class="setting-hint">Higher quality = larger file size</p>
         </div>
@@ -153,7 +165,7 @@
 
     <!-- Footer -->
     <footer class="footer">
-      <p>v2026.1.3</p>
+      <p>v2026.1.4</p>
     </footer>
   </div>
 
