@@ -247,11 +247,11 @@ function renderPresets() {
       <span class="preset-desc">${p.desc}</span>
     </button>`;
   }).join('') + `
-    <button type="button" class="preset-card ${state.presetId === 'custom' ? 'active' : ''}" data-preset="custom" style="grid-column:1/-1;flex-direction:row;align-items:center;gap:14px;min-height:auto;">
-      <span class="preset-radio"></span>
+    <button type="button" class="preset-card preset-card-custom ${state.presetId === 'custom' ? 'active' : ''}" data-preset="custom">
       <span class="preset-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="1" x2="7" y1="14" y2="14"/><line x1="9" x2="15" y1="8" y2="8"/><line x1="17" x2="23" y1="16" y2="16"/></svg></span>
-      <span style="flex:1;text-align:left;"><span class="preset-name">Custom</span><span class="preset-tag" style="margin-left:7px;">Fine-tune below 50%</span></span>
+      <span class="preset-custom-text"><span class="preset-name">Custom</span><span class="preset-tag">Fine-tune below 50%</span></span>
       <span class="preset-badge" id="customBadgeDisplay">${state.presetId === 'custom' ? 'Quality ' + state.customQuality : '–'}</span>
+      <span class="preset-radio"></span>
     </button>`;
 
   grid.querySelectorAll('.preset-card').forEach(card =>
@@ -428,12 +428,16 @@ $('openFolderBtn').addEventListener('click', async () => {
   }
 });
 
-$('compressMoreBtn').addEventListener('click', () => {
+$('compressMoreBtn').addEventListener('click', async () => {
   state.files = [];
   state.fileStates = [];
   state.results = [];
-  state.outputFolder = '';
-  $('outputPath').value = '';
+  // Restore the default output folder rather than clearing it
+  try {
+    const def = await api.getDefaultOutput();
+    state.outputFolder = def || '';
+    $('outputPath').value = def || '';
+  } catch { state.outputFolder = ''; $('outputPath').value = ''; }
   setStage('idle');
   setRing(0);
   updateBatchBadge();
@@ -575,6 +579,13 @@ $('batchCompressAll').addEventListener('click', () => {
 (async function init() {
   setStage('idle');
   renderPresets();
+
+  // Default output folder → Documents\Compressed (created if missing)
+  try {
+    const def = await api.getDefaultOutput();
+    if (def) { state.outputFolder = def; $('outputPath').value = def; }
+  } catch { /* user can still pick manually */ }
+
   try { state.history = await api.getHistory(); } catch { state.history = []; }
   updateSidebarStats();
   updateBatchBadge();

@@ -4,6 +4,7 @@ const { webUtils } = require('electron');
 contextBridge.exposeInMainWorld('electronAPI', {
   selectFiles: () => ipcRenderer.invoke('select-files'),
   selectOutputFolder: () => ipcRenderer.invoke('select-output-folder'),
+  getDefaultOutput: () => ipcRenderer.invoke('get-default-output'),
   compressPDF: (data) => ipcRenderer.invoke('compress-pdf', data),
   compressBatch: (data) => ipcRenderer.invoke('compress-batch', data),
   openFolder: (path) => ipcRenderer.invoke('open-folder', path),

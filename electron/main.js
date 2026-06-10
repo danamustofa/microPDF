@@ -99,6 +99,18 @@ ipcMain.handle('clear-history', () => {
   return [];
 });
 
+// Default output folder (Documents\Compressed, created if missing)
+ipcMain.handle('get-default-output', () => {
+  const folder = path.join(app.getPath('documents'), 'Compressed');
+  try {
+    fs.mkdirSync(folder, { recursive: true });
+    return folder;
+  } catch (e) {
+    console.error('Failed to create default output folder:', e.message);
+    return app.getPath('documents'); // Fall back to Documents itself
+  }
+});
+
 // Handle file selection
 ipcMain.handle('select-files', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
