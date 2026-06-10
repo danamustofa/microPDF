@@ -7,17 +7,17 @@ let mainWindow;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 900,
-    height: 700,
-    minWidth: 800,
-    minHeight: 600,
+    width: 1024,
+    height: 720,
+    minWidth: 940,
+    minHeight: 660,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.js')
     },
-    frame: true,
-    backgroundColor: '#ffffff',
+    frame: false,            // Custom ShrinkPDF-style titlebar
+    backgroundColor: '#f6f8fb',
     icon: path.join(__dirname, 'assets', 'icon.png'),
     autoHideMenuBar: true  // Hide menu bar (File, Edit, View, etc.)
   });
@@ -26,6 +26,10 @@ function createWindow() {
   mainWindow.setMenuBarVisibility(false);
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
+
+  // Keep the renderer's maximize button icon in sync
+  mainWindow.on('maximize', () => mainWindow.webContents.send('window-maximized', true));
+  mainWindow.on('unmaximize', () => mainWindow.webContents.send('window-maximized', false));
 
   // DevTools disabled for production
   // Uncomment line below only for debugging:
@@ -44,6 +48,55 @@ app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
   }
+});
+
+// ----- Window controls (frameless titlebar) -----
+ipcMain.on('window-minimize', () => mainWindow && mainWindow.minimize());
+ipcMain.on('window-maximize', () => {
+  if (!mainWindow) return;
+  if (mainWindow.isMaximized()) mainWindow.unmaximize();
+  else mainWindow.maximize();
+});
+ipcMain.on('window-close', () => mainWindow && mainWindow.close());
+ipcMain.handle('window-is-maximized', () => mainWindow ? mainWindow.isMaximized() : false);
+
+// ----- Compression history persistence (userData/history.json) -----
+function historyFilePath() {
+  return path.join(app.getPath('userData'), 'history.json');
+}
+
+function readHistory() {
+  try {
+    const raw = fs.readFileSync(historyFilePath(), 'utf-8');
+    const data = JSON.parse(raw);
+    return Array.isArray(data) ? data : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+ipcMain.handle('get-history', () => readHistory());
+
+ipcMain.handle('add-history', (event, entries) => {
+  const list = Array.isArray(entries) ? entries : [entries];
+  const history = readHistory();
+  // newest first; cap at 200 records
+  const next = [...list, ...history].slice(0, 200);
+  try {
+    fs.writeFileSync(historyFilePath(), JSON.stringify(next, null, 2));
+  } catch (e) {
+    console.error('Failed to write history:', e.message);
+  }
+  return next;
+});
+
+ipcMain.handle('clear-history', () => {
+  try {
+    fs.writeFileSync(historyFilePath(), '[]');
+  } catch (e) {
+    console.error('Failed to clear history:', e.message);
+  }
+  return [];
 });
 
 // Handle file selection

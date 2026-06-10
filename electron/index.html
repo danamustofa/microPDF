@@ -7,166 +7,354 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="container">
-    <!-- Header -->
-    <header class="header">
-      <div class="logo">
-        <img src="assets/icon.png" alt="PDF Compressor" class="logo-icon" width="40" height="40">
-        <h1>microPDF</h1>
-      </div>
-      <p class="subtitle">Easy to use, optimized for you.</p>
-    </header>
+  <div class="app">
 
-    <!-- Main Content -->
-    <main class="main-content">
-      <!-- Drop Zone -->
-      <div class="drop-zone" id="dropZone">
-        <svg class="drop-icon" width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M32 8L44 20H36V36H28V20H20L32 8Z" fill="#054da2" opacity="0.2"/>
-          <rect x="16" y="40" width="32" height="4" rx="2" fill="#054da2" opacity="0.2"/>
-          <circle cx="32" cy="32" r="28" stroke="#054da2" stroke-width="2" stroke-dasharray="4 4"/>
-        </svg>
-        <h2>Drag & Drop PDF Files Here</h2>
-        <p>or</p>
-        <button class="btn-primary" id="selectFilesBtn">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 4V16M4 10H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-          Select Files
-        </button>
-        <p class="hint">Support multiple files</p>
-      </div>
-
-      <!-- File List -->
-      <div class="file-list" id="fileList" style="display: none;">
-        <div class="file-list-header">
-          <h3>Selected Files (<span id="fileCount">0</span>)</h3>
-          <button class="btn-text" id="clearFilesBtn">Clear All</button>
+    <!-- ===== Custom titlebar ===== -->
+    <div class="titlebar">
+      <div class="titlebar-left">
+        <div class="titlebar-logo">
+          <img src="assets/icon.png" alt="" width="13" height="13">
         </div>
-        <div class="files" id="filesContainer"></div>
+        <span class="titlebar-name">microPDF</span>
+        <span class="titlebar-sep"></span>
+        <span class="titlebar-sub">PDF Optimizer</span>
       </div>
+      <div class="titlebar-controls">
+        <button class="win-btn" id="winMin" title="Minimize" aria-label="Minimize">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg>
+        </button>
+        <button class="win-btn" id="winMax" title="Maximize" aria-label="Maximize">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+        </button>
+        <button class="win-btn win-close" id="winClose" title="Close" aria-label="Close">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+    </div>
 
-      <!-- Settings -->
-      <div class="settings" id="settings" style="display: none;">
-        <h3>Compression Settings</h3>
-        
-        <!-- Quality Selector -->
-        <div class="setting-group">
-          <label>Compression Quality</label>
-          <div class="quality-buttons">
-            <button class="quality-btn" data-quality="90">
-              <span class="quality-label">High</span>
-              <span class="quality-value">90%</span>
-            </button>
-            <button class="quality-btn active" data-quality="80">
-              <span class="quality-label">Good</span>
-              <span class="quality-value">80%</span>
-            </button>
-            <button class="quality-btn" data-quality="70">
-              <span class="quality-label">Medium</span>
-              <span class="quality-value">70%</span>
-            </button>
-            <button class="quality-btn" data-quality="60">
-              <span class="quality-label">Fair</span>
-              <span class="quality-value">60%</span>
-            </button>
-            <button class="quality-btn" data-quality="50">
-              <span class="quality-label">Low</span>
-              <span class="quality-value">50%</span>
-            </button>
-            <button class="quality-btn" data-quality="custom">
-              <span class="quality-label">Custom</span>
-              <span class="quality-value" id="customQualityDisplay">–</span>
-            </button>
+    <!-- ===== Body ===== -->
+    <div class="body">
+
+      <!-- ===== Sidebar ===== -->
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">
+            <img src="assets/icon.png" alt="microPDF" width="22" height="22">
           </div>
-          <div class="custom-quality-panel" id="customQualityPanel" style="display: none;">
-            <div class="custom-slider-row">
-              <span class="custom-slider-label">Quality</span>
-              <input type="range" id="customQualitySlider" min="1" max="49" value="30" step="1">
-              <span class="custom-slider-value" id="customQualityValue">30%</span>
+          <div class="brand-text">
+            <span class="brand-title">microPDF</span>
+            <span class="brand-kicker">PDF Optimizer</span>
+          </div>
+        </div>
+
+        <!-- Live "space saved" stat card (driven by real history) -->
+        <div class="stat-card">
+          <div class="stat-card-head">
+            <span class="stat-card-label">Total Space Saved</span>
+            <span class="stat-card-trend">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>
+            </span>
+          </div>
+          <div class="stat-card-value">
+            <span id="statSavedValue">0</span><span class="stat-card-unit" id="statSavedUnit">MB</span>
+          </div>
+          <div class="stat-card-sub" id="statSavedSub">across 0 documents</div>
+          <div class="stat-card-tiles">
+            <div class="mini-tile">
+              <div class="mini-tile-value" id="statAvgReduction">0%</div>
+              <div class="mini-tile-label">avg. reduction</div>
             </div>
-            <p class="custom-slider-hint" id="customSliderHint">⚠️ Below 30% images may appear blurry. Use with caution.</p>
-          </div>
-          <p class="setting-hint">Higher quality = larger file size</p>
-        </div>
-
-        <!-- Output Folder -->
-        <div class="setting-group">
-          <label>Output Folder</label>
-          <div class="folder-selector">
-            <input type="text" id="outputPath" placeholder="Select output folder..." readonly>
-            <button class="btn-secondary" id="selectOutputBtn">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 5C3 3.89543 3.89543 3 5 3H7.58579C8.11622 3 8.62493 3.21071 9 3.58579L10.4142 5H15C16.1046 5 17 5.89543 17 7V15C17 16.1046 16.1046 17 15 17H5C3.89543 17 3 16.1046 3 15V5Z" stroke="currentColor" stroke-width="1.5"/>
-              </svg>
-              Browse
-            </button>
+            <div class="mini-tile">
+              <div class="mini-tile-value" id="statSessionCount">0</div>
+              <div class="mini-tile-label">this session</div>
+            </div>
           </div>
         </div>
 
-        <!-- Compress Button -->
-        <button class="btn-compress" id="compressBtn">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 3V17M10 17L6 13M10 17L14 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Start Compression
-        </button>
-      </div>
-
-      <!-- Progress -->
-      <div class="progress-container" id="progressContainer" style="display: none;">
-        <h3>Compressing...</h3>
-        
-        <!-- Animated spinner -->
-        <div class="spinner-container">
-          <div class="spinner"></div>
-        </div>
-        
-        <!-- Progress bar -->
-        <div class="progress-bar">
-          <div class="progress-fill" id="progressFill"></div>
-        </div>
-        
-        <!-- Progress info -->
-        <div class="progress-info">
-          <p class="progress-text" id="progressText">Processing file 1 of 5...</p>
-          <p class="progress-detail" id="progressDetail">Reading PDF...</p>
-          <p class="progress-page" id="progressPage"></p>
-        </div>
-        
-        <!-- Current file info -->
-        <div class="current-file-info" id="currentFileInfo">
-          <div class="file-icon-small">📄</div>
-          <div class="file-name-small" id="currentFileName">document.pdf</div>
-        </div>
-      </div>
-
-      <!-- Results -->
-      <div class="results" id="results" style="display: none;">
-        <div class="results-header">
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="24" cy="24" r="24" fill="#00b091" opacity="0.1"/>
-            <path d="M16 24L21 29L32 18" stroke="#00b091" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <h2>Compression Complete!</h2>
-        </div>
-        <div class="results-stats" id="resultsStats"></div>
-        <div class="results-actions">
-          <button class="btn-primary" id="openFolderBtn">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 5C3 3.89543 3.89543 3 5 3H7.58579C8.11622 3 8.62493 3.21071 9 3.58579L10.4142 5H15C16.1046 5 17 5.89543 17 7V15C17 16.1046 16.1046 17 15 17H5C3.89543 17 3 16.1046 3 15V5Z" stroke="currentColor" stroke-width="1.5"/>
-            </svg>
-            Open Output Folder
+        <!-- Nav -->
+        <nav class="nav">
+          <div class="nav-section">Workspace</div>
+          <button class="nav-item active" data-view="compressor">
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+            </span>
+            <span class="nav-label">Compressor</span>
           </button>
-          <button class="btn-secondary" id="compressMoreBtn">Compress More Files</button>
-        </div>
-      </div>
-    </main>
+          <button class="nav-item" data-view="batch">
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>
+            </span>
+            <span class="nav-label">Batch Queue</span>
+            <span class="nav-badge" id="navBatchBadge" style="display:none;">0</span>
+          </button>
+          <button class="nav-item" data-view="history">
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </span>
+            <span class="nav-label">History</span>
+          </button>
+          <button class="nav-item" data-view="audit">
+            <span class="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+            </span>
+            <span class="nav-label">Audit Logs</span>
+          </button>
+        </nav>
 
-    <!-- Footer -->
-    <footer class="footer">
-      <p>v2026.1.4</p>
-    </footer>
+        <div class="sidebar-foot">
+          <span>v2026.1.4</span>
+          <span class="sidebar-foot-dot"></span>
+          <span>Local processing</span>
+        </div>
+      </aside>
+
+      <!-- ===== Main ===== -->
+      <main class="main">
+        <header class="main-head">
+          <div class="main-head-titles">
+            <h1 id="headTitle">Compressor</h1>
+            <span id="headSub">Optimize PDF documents without losing fidelity</span>
+          </div>
+          <div class="main-head-actions">
+            <button class="btn btn-ghost" id="addFilesTopBtn" style="display:none;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              Add files
+            </button>
+            <div class="secure-chip">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Local processing
+            </div>
+          </div>
+        </header>
+
+        <section class="content">
+
+          <!-- ============ VIEW: COMPRESSOR ============ -->
+          <div class="view" id="view-compressor">
+
+            <!-- STAGE: setup (idle + loaded) -->
+            <div id="stage-setup">
+              <!-- Drop zone -->
+              <div class="drop-zone" id="dropZone">
+                <svg class="drop-ants" viewBox="0 0 1000 200" preserveAspectRatio="none" fill="none">
+                  <rect x="2" y="2" width="996" height="196" rx="20" stroke="#00aeef" stroke-width="2.4" stroke-dasharray="14 11" stroke-opacity="0.8"/>
+                </svg>
+                <div class="drop-inner">
+                  <div class="drop-icon-wrap">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg>
+                  </div>
+                  <div class="drop-titles">
+                    <div class="drop-title">Drag &amp; drop your PDF here</div>
+                    <div class="drop-sub">or <button class="link-btn" id="selectFilesBtn" type="button">click to browse</button> — supports multiple PDF files</div>
+                  </div>
+                  <div class="drop-secure">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+                    Files never leave your device — processed locally
+                  </div>
+                </div>
+              </div>
+
+              <!-- Loaded file list -->
+              <div class="file-block" id="fileBlock" style="display:none;">
+                <div class="file-block-head">
+                  <span class="file-block-title">Selected files (<span id="fileCount">0</span>)</span>
+                  <button class="link-btn muted" id="clearFilesBtn" type="button">Clear all</button>
+                </div>
+                <div class="file-cards" id="filesContainer"></div>
+              </div>
+
+              <!-- Presets -->
+              <div class="presets-block" id="presetsBlock" style="display:none;">
+                <div class="block-head">
+                  <span class="block-label">Compression preset</span>
+                  <span class="block-hint">Maps to real JPEG image quality</span>
+                </div>
+                <div class="preset-grid" id="presetGrid"></div>
+
+                <!-- Custom slider -->
+                <div class="custom-panel" id="customPanel" style="display:none;">
+                  <div class="custom-row">
+                    <span class="custom-label">Quality</span>
+                    <input type="range" id="customSlider" min="1" max="49" value="30" step="1">
+                    <span class="custom-value" id="customValue">30%</span>
+                  </div>
+                  <p class="custom-hint" id="customHint">⚠️ Below 30% images may appear blurry. Use with caution.</p>
+                </div>
+              </div>
+
+              <!-- Output folder -->
+              <div class="output-block" id="outputBlock" style="display:none;">
+                <span class="block-label">Output folder</span>
+                <div class="folder-selector">
+                  <input type="text" id="outputPath" placeholder="Select an output folder…" readonly>
+                  <button class="btn btn-ghost" id="selectOutputBtn" type="button">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+                    Browse
+                  </button>
+                </div>
+              </div>
+
+              <!-- Action -->
+              <div class="action-block" id="actionBlock" style="display:none;">
+                <button class="btn btn-primary btn-compress" id="compressBtn" type="button">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  Compress <span id="compressCountLabel"></span>
+                </button>
+                <div class="action-helper" id="actionHelper">microPDF keeps text crisp, selectable, and audit-ready</div>
+              </div>
+            </div>
+
+            <!-- STAGE: compressing -->
+            <div id="stage-compressing" style="display:none;">
+              <div class="progress-wrap">
+                <div class="progress-file">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
+                  <span id="progFileName">document.pdf</span>
+                </div>
+                <div class="ring">
+                  <svg width="128" height="128" viewBox="0 0 120 120">
+                    <defs><linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00aeef"/><stop offset="1" stop-color="#00b091"/></linearGradient></defs>
+                    <circle cx="60" cy="60" r="52" fill="none" stroke="#e2e8f0" stroke-width="9"/>
+                    <circle id="ringProgress" cx="60" cy="60" r="52" fill="none" stroke="url(#ringGrad)" stroke-width="9" stroke-linecap="round" stroke-dasharray="326.726" stroke-dashoffset="326.726"/>
+                  </svg>
+                  <div class="ring-center"><span id="progPct">0</span><span class="ring-unit">%</span></div>
+                </div>
+                <div class="prog-status">
+                  <span class="prog-dot"></span>
+                  <span id="progStatus">Starting…</span>
+                </div>
+                <p class="prog-detail" id="progDetail"></p>
+                <button class="btn btn-ghost" id="cancelBtn" type="button">Cancel</button>
+              </div>
+            </div>
+
+            <!-- STAGE: completed -->
+            <div id="stage-completed" style="display:none;">
+              <div class="done-banner">
+                <div class="done-banner-left">
+                  <div class="done-check">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                  </div>
+                  <div>
+                    <div class="done-title">Compression complete</div>
+                    <div class="done-sub" id="doneSub">Files optimized &amp; verified</div>
+                  </div>
+                </div>
+                <div class="done-pct">
+                  <div class="done-pct-value"><span id="doneSavedPct">0</span><span class="done-pct-unit">%</span></div>
+                  <div class="done-pct-label">space saved</div>
+                </div>
+              </div>
+
+              <div class="compare-card">
+                <div class="compare-row">
+                  <span class="compare-label">Original</span>
+                  <span class="compare-size" id="origSize">0 MB</span>
+                </div>
+                <div class="compare-bar"><div class="compare-fill compare-fill-orig"></div></div>
+                <div class="compare-row compare-row-mt">
+                  <span class="compare-label compare-label-ok">Compressed</span>
+                  <span class="compare-size compare-size-ok" id="compSize">0 MB</span>
+                </div>
+                <div class="compare-bar"><div class="compare-fill compare-fill-comp" id="compFill"></div></div>
+                <div class="compare-foot">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>
+                  <span><span class="compare-foot-strong" id="removedBytes">0 MB</span> removed — text kept crisp &amp; selectable</span>
+                </div>
+              </div>
+
+              <div class="done-tiles">
+                <div class="done-tile">
+                  <span class="done-tile-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" x2="6.01" y1="16" y2="16"/><line x1="10" x2="10.01" y1="16" y2="16"/></svg></span>
+                  <span class="done-tile-label">Preset used</span>
+                  <span class="done-tile-value" id="donePreset">Balanced</span>
+                </div>
+                <div class="done-tile">
+                  <span class="done-tile-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg></span>
+                  <span class="done-tile-label">Files processed</span>
+                  <span class="done-tile-value done-tile-value-ok" id="doneCount">0</span>
+                </div>
+                <div class="done-tile">
+                  <span class="done-tile-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></span>
+                  <span class="done-tile-label">Text integrity</span>
+                  <span class="done-tile-value">Preserved</span>
+                </div>
+              </div>
+
+              <div class="done-failed" id="doneFailed" style="display:none;"></div>
+
+              <div class="done-actions">
+                <button class="btn btn-primary" id="openFolderBtn" type="button">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg>
+                  Open folder
+                </button>
+                <button class="btn btn-ghost" id="compressMoreBtn" type="button">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
+                  Compress more
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============ VIEW: BATCH QUEUE ============ -->
+          <div class="view" id="view-batch" style="display:none;">
+            <div class="batch-stats">
+              <div class="batch-stat"><div class="batch-stat-value" id="batchTotal">0</div><div class="batch-stat-label">In session</div></div>
+              <div class="batch-stat batch-stat-active"><div class="batch-stat-value" id="batchActive">0</div><div class="batch-stat-label">Compressing</div></div>
+              <div class="batch-stat"><div class="batch-stat-value" id="batchQueued">0</div><div class="batch-stat-label">Queued</div></div>
+              <div class="batch-stat batch-stat-ok"><div class="batch-stat-value" id="batchSaved">0 MB</div><div class="batch-stat-label">Saved this session</div></div>
+            </div>
+            <div class="table-card">
+              <div class="table-head batch-grid">
+                <span>Document</span><span class="ta-right">Size</span><span>Status</span><span class="ta-right">Result</span>
+              </div>
+              <div class="table-body" id="batchBody"></div>
+              <div class="table-foot">
+                <span class="table-foot-info">Preset applied to queue: <span id="batchPresetLabel" class="strong-link">Balanced</span></span>
+                <button class="btn btn-primary btn-sm" id="batchCompressAll" type="button">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  Compress all
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============ VIEW: HISTORY ============ -->
+          <div class="view" id="view-history" style="display:none;">
+            <div class="hist-stats">
+              <div class="hist-stat"><div class="hist-stat-label">Documents compressed</div><div class="hist-stat-value" id="histCount">0</div></div>
+              <div class="hist-stat hist-stat-ok"><div class="hist-stat-label">Total space saved</div><div class="hist-stat-value" id="histSaved">0 MB</div></div>
+              <div class="hist-stat"><div class="hist-stat-label">Average reduction</div><div class="hist-stat-value" id="histAvg">0%</div></div>
+            </div>
+            <div class="table-card">
+              <div class="table-head hist-grid">
+                <span>Date</span><span>Document</span><span>Reduction</span><span class="ta-right">Saved</span><span class="ta-right">Preset</span>
+              </div>
+              <div class="table-body" id="histBody"></div>
+              <div class="table-foot">
+                <span class="table-foot-info" id="histFootInfo">No compressions yet</span>
+                <button class="btn btn-ghost btn-sm" id="clearHistoryBtn" type="button">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  Clear history
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============ VIEW: AUDIT ============ -->
+          <div class="view" id="view-audit" style="display:none;">
+            <div class="audit-empty">
+              <div class="audit-icon">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </div>
+              <div class="audit-title">Audit logs are access-controlled</div>
+              <div class="audit-sub">Compression activity, document hashes, and operator records are retained for compliance. This screen requires elevated access from an administrator and is not enabled in this build.</div>
+            </div>
+          </div>
+
+        </section>
+      </main>
+    </div>
   </div>
 
   <script src="renderer.js"></script>

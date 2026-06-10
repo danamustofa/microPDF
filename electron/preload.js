@@ -21,5 +21,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   onCompressionStatus: (callback) => {
     ipcRenderer.on('compression-status', (event, data) => callback(data));
-  }
+  },
+
+  // Window controls (frameless titlebar)
+  windowMinimize: () => ipcRenderer.send('window-minimize'),
+  windowMaximize: () => ipcRenderer.send('window-maximize'),
+  windowClose: () => ipcRenderer.send('window-close'),
+  windowIsMaximized: () => ipcRenderer.invoke('window-is-maximized'),
+  onWindowMaximized: (callback) => {
+    ipcRenderer.on('window-maximized', (event, isMax) => callback(isMax));
+  },
+
+  // Compression history
+  getHistory: () => ipcRenderer.invoke('get-history'),
+  addHistory: (entries) => ipcRenderer.invoke('add-history', entries),
+  clearHistory: () => ipcRenderer.invoke('clear-history')
 });
