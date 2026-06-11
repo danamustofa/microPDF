@@ -174,11 +174,14 @@
                 <!-- Custom slider -->
                 <div class="custom-panel" id="customPanel" style="display:none;">
                   <div class="custom-row">
-                    <span class="custom-label">Quality</span>
+                    <span class="custom-label">Quality level</span>
                     <input type="range" id="customSlider" min="1" max="49" value="30" step="1">
                     <span class="custom-value" id="customValue">30%</span>
                   </div>
-                  <p class="custom-hint" id="customHint">⚠️ Below 30% images may appear blurry. Use with caution.</p>
+                  <p class="custom-hint" id="customHint">
+                    <svg class="custom-hint-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                    <span id="customHintText">Below 30%, images may appear blurry — use with caution.</span>
+                  </p>
                 </div>
               </div>
 

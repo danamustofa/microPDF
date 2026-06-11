@@ -258,6 +258,7 @@ function renderPresets() {
     card.addEventListener('click', () => selectPreset(card.dataset.preset)));
 
   $('customPanel').style.display = state.presetId === 'custom' ? 'block' : 'none';
+  if (state.presetId === 'custom') paintCustomSlider();
 }
 
 function selectPreset(id) {
@@ -266,13 +267,29 @@ function selectPreset(id) {
   $('batchPresetLabel').textContent = presetDisplayName();
 }
 
-$('customSlider').addEventListener('input', e => {
-  const v = parseInt(e.target.value);
-  state.customQuality = v;
+function paintCustomSlider() {
+  const slider = $('customSlider');
+  const v = state.customQuality;
+  slider.value = v;
+  const min = 1, max = 49;
+  const pct = ((v - min) / (max - min)) * 100;
+  const warn = v < 30;
+  const fill = warn ? 'var(--warn)' : 'var(--blue)';
+  slider.style.background = `linear-gradient(90deg, ${fill} ${pct}%, var(--line2) ${pct}%)`;
+  slider.classList.toggle('warn', warn);
   $('customValue').textContent = v + '%';
+  $('customValue').classList.toggle('warn', warn);
+  $('customHint').classList.toggle('warn', warn);
+  $('customHintText').textContent = warn
+    ? 'Below 30%, images may appear blurry — use with caution.'
+    : 'Lower quality means a smaller file. Drag to fine-tune.';
   const badge = $('customBadgeDisplay');
   if (badge) badge.textContent = 'Quality ' + v;
-  $('customHint').style.display = v < 30 ? 'block' : 'none';
+}
+
+$('customSlider').addEventListener('input', e => {
+  state.customQuality = parseInt(e.target.value);
+  paintCustomSlider();
   $('batchPresetLabel').textContent = presetDisplayName();
 });
 
