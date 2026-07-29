@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getDefaultOutput: () => ipcRenderer.invoke('get-default-output'),
   compressPDF: (data) => ipcRenderer.invoke('compress-pdf', data),
   compressBatch: (data) => ipcRenderer.invoke('compress-batch', data),
+  cancelCompression: () => ipcRenderer.invoke('cancel-compression'),
   openFolder: (path) => ipcRenderer.invoke('open-folder', path),
   getFileSize: (path) => ipcRenderer.invoke('get-file-size', path),
   getPathForFile: (file) => {

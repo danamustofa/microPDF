@@ -24,6 +24,8 @@ const PRESET_ICONS = {
 const STATUS_MSGS = {
   reading: 'Reading PDF structure…',
   processing: 'Compressing images…',
+  optimizing: 'Optimizing PDF structure…',
+  rasterizing: 'Rebuilding vector pages…',
   saving: 'Saving compressed PDF…'
 };
 
@@ -333,12 +335,27 @@ api.onCompressionStatus(data => {
     $('progStatus').textContent = STATUS_MSGS.reading;
     $('progDetail').textContent = '';
     setRing(base + span * 0.05);
+  } else if (data.status === 'rasterizing') {
+    // Third engine: last stretch of the run, so it owns the 80-95% band
+    $('progStatus').textContent = STATUS_MSGS.rasterizing;
+    if (data.currentPage && data.totalPages) {
+      $('progDetail').textContent = `Page ${data.currentPage} of ${data.totalPages}`;
+      setRing(base + span * (0.85 + 0.1 * (data.currentPage / data.totalPages)));
+    } else {
+      $('progDetail').textContent = 'Analyzing page content…';
+      setRing(base + span * 0.85);
+    }
+  } else if (data.status === 'optimizing') {
+    // Ghostscript pass: no per-page feedback, so hold a single step forward
+    $('progStatus').textContent = STATUS_MSGS.optimizing;
+    $('progDetail').textContent = 'Running second engine…';
+    setRing(base + span * 0.8);
   } else if (data.status === 'processing') {
     $('progStatus').textContent = STATUS_MSGS.processing;
     if (data.currentPage && data.totalPages) {
       $('progDetail').textContent = `Page ${data.currentPage} of ${data.totalPages}`;
       const frac = data.currentPage / data.totalPages;
-      const pct = base + span * frac;
+      const pct = base + span * (0.05 + 0.65 * frac);
       setRing(pct);
       state.fileStates[i] = { status: 'active', pct: Math.round(frac * 100), result: null };
       if (state.view === 'batch') renderBatch();
@@ -404,7 +421,12 @@ async function startCompression() {
   updateBatchBadge();
 }
 
-$('cancelBtn').addEventListener('click', () => { state.cancelled = true; });
+$('cancelBtn').addEventListener('click', () => {
+  state.cancelled = true;
+  $('progStatus').textContent = 'Cancelling…';
+  // Stops the file being worked on right now, not just the rest of the queue
+  api.cancelCompression();
+});
 
 // =====================================================================
 // Completed screen

@@ -5,7 +5,7 @@ Mendukung berbagai mode: interaktif, single file, batch processing
 
 import os
 import sys
-from compress_pdf import compress_pdf_images
+from compress_pdf import compress_pdf_hybrid
 from pathlib import Path
 
 
@@ -63,7 +63,7 @@ def compress_single_file(input_path, output_path=None, quality=75):
     print(f'Kualitas: {quality}%\n')
     
     # Jalankan kompresi
-    success = compress_pdf_images(input_path, output_path, image_quality=quality)
+    success = compress_pdf_hybrid(input_path, output_path, image_quality=quality)
     
     if success:
         print('\n' + '=' * 70)
@@ -118,8 +118,8 @@ def compress_batch(input_folder, output_folder=None, quality=75):
         print(f"\n[{i}/{len(pdf_files)}] Memproses: {pdf_file}")
         print('-' * 70)
         
-        success = compress_pdf_images(input_path, output_path, image_quality=quality)
-        
+        success = compress_pdf_hybrid(input_path, output_path, image_quality=quality)
+
         if success:
             success_count += 1
         else:

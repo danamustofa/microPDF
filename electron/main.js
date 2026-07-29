@@ -5,6 +5,104 @@ const fs = require('fs');
 
 let mainWindow;
 
+// Ghostscript is one of the two compression engines. In development it sits in
+// vendor/ next to compress_pdf.py and Python finds it on its own; in a packaged
+// build it is copied into resources/, which only the main process knows about.
+function ghostscriptEnv() {
+  if (!app.isPackaged) return {};
+
+  const binary = process.platform === 'win32' ? 'gswin64c.exe' : 'gs';
+  const bundled = path.join(process.resourcesPath, 'ghostscript', 'bin', binary);
+
+  return fs.existsSync(bundled) ? { MICROPDF_GS: bundled } : {};
+}
+
+// Windows ships a stub python.exe under WindowsApps that only advertises the
+// Microsoft Store and exits with code 9009, so spawning a bare 'python' is not
+// safe. Probe candidates instead and keep the first real interpreter, favouring
+// one that already has PyPDF2 and Pillow.
+let cachedPython;
+
+function subdirectories(parent) {
+  try {
+    return fs.readdirSync(parent, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => path.join(parent, entry.name));
+  } catch (e) {
+    return [];
+  }
+}
+
+function pythonCandidates() {
+  const candidates = [];
+  const add = (command, args = []) => command && candidates.push({ command, args });
+
+  add(process.env.MICROPDF_PYTHON);
+
+  if (process.platform === 'win32') {
+    add('py', ['-3']);            // Launcher / Python install manager
+    add('python');
+    add('python3');
+
+    const localAppData = process.env.LOCALAPPDATA;
+    if (localAppData) {
+      // PyManager layout: Local\Python\bin\python.exe + pythoncore-3.x-64\
+      add(path.join(localAppData, 'Python', 'bin', 'python.exe'));
+      for (const dir of subdirectories(path.join(localAppData, 'Python'))) {
+        add(path.join(dir, 'python.exe'));
+      }
+      // Classic per-user installer: Local\Programs\Python\Python3xx\
+      for (const dir of subdirectories(path.join(localAppData, 'Programs', 'Python'))) {
+        add(path.join(dir, 'python.exe'));
+      }
+    }
+
+    for (const root of [process.env.ProgramFiles, process.env['ProgramFiles(x86)']]) {
+      for (const dir of subdirectories(root || '')) {
+        if (path.basename(dir).toLowerCase().startsWith('python')) {
+          add(path.join(dir, 'python.exe'));
+        }
+      }
+    }
+  } else {
+    add('python3');
+    add('python');
+  }
+
+  return candidates;
+}
+
+function probePython(candidate, code) {
+  try {
+    const result = require('child_process').spawnSync(
+      candidate.command,
+      [...candidate.args, '-c', code],
+      { encoding: 'utf-8', windowsHide: true, timeout: 20000 }
+    );
+    return result.status === 0 && (result.stdout || '').trim().length > 0;
+  } catch (e) {
+    return false;
+  }
+}
+
+function resolvePython() {
+  if (cachedPython !== undefined) return cachedPython;
+
+  const candidates = pythonCandidates();
+  const withDeps = candidates.find((c) => probePython(c, 'import sys, PyPDF2, PIL; print(sys.executable)'));
+  const anyPython = withDeps || candidates.find((c) => probePython(c, 'import sys; print(sys.executable)'));
+
+  cachedPython = anyPython ? { ...anyPython, hasDependencies: Boolean(withDeps) } : null;
+
+  if (cachedPython) {
+    console.log('Using Python:', cachedPython.command, cachedPython.args.join(' '));
+  } else {
+    console.error('No usable Python 3 interpreter found');
+  }
+
+  return cachedPython;
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1024,
@@ -149,6 +247,32 @@ ipcMain.handle('get-file-size', async (event, filePath) => {
   }
 });
 
+// Python children currently compressing, so Cancel can actually stop them.
+// Without this the UI leaves the progress screen while the run keeps going.
+const activeCompressions = new Set();
+
+function killCompression(child) {
+  try {
+    if (process.platform === 'win32') {
+      // Python shells out to Ghostscript; /T takes the whole tree down.
+      spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { windowsHide: true });
+    } else {
+      child.kill('SIGTERM');
+    }
+  } catch (e) {
+    console.error('Failed to cancel compression:', e.message);
+  }
+}
+
+ipcMain.handle('cancel-compression', () => {
+  for (const child of activeCompressions) {
+    child.cancelled = true;
+    killCompression(child);
+  }
+  activeCompressions.clear();
+  return true;
+});
+
 // Extracted compression logic for reuse (Bug #6 fix)
 async function runCompressPDF({ inputPath, outputPath, quality, event }) {
   return new Promise((resolve, reject) => {
@@ -163,7 +287,25 @@ async function runCompressPDF({ inputPath, outputPath, quality, event }) {
         reject(new Error(`Input file not found: ${inputPath}`));
         return;
       }
-      
+
+      const pythonExec = resolvePython();
+      if (!pythonExec) {
+        reject(new Error(
+          'Python 3 was not found. Install it from python.org (tick "Add python.exe to PATH"), ' +
+          'or set MICROPDF_PYTHON to the full path of python.exe.'
+        ));
+        return;
+      }
+
+      if (!pythonExec.hasDependencies) {
+        const label = [pythonExec.command, ...pythonExec.args].join(' ');
+        reject(new Error(
+          `Python was found (${label}) but PyPDF2/Pillow are missing. ` +
+          `Install them with: ${label} -m pip install -r requirements.txt`
+        ));
+        return;
+      }
+
       // Path ke Python script
       const scriptPath = path.join(__dirname, '..', 'compress_pdf.py');
       
@@ -173,11 +315,7 @@ import sys
 import os
 sys.path.insert(0, '${path.join(__dirname, '..').replace(/\\/g, '\\\\')}')
 
-# Suppress print statements from compress_pdf module
-import io
-from contextlib import redirect_stdout, redirect_stderr
-
-from compress_pdf import compress_pdf_images
+from compress_pdf import compress_pdf_hybrid
 
 input_path = r'${inputPath.replace(/\\/g, '\\\\')}'
 output_path = r'${outputPath.replace(/\\/g, '\\\\')}'
@@ -190,21 +328,12 @@ try:
         sys.exit(1)
     
     original_size = os.path.getsize(input_path)
-    
-    # Redirect stdout to capture compress_pdf_images output
-    f = io.StringIO()
-    with redirect_stdout(f):
-        # Compress
-        success = compress_pdf_images(input_path, output_path, image_quality=quality)
-    
-    # Get the output for progress updates
-    output_text = f.getvalue()
-    
-    # Print progress lines for UI updates
-    for line in output_text.split('\\n'):
-        if any(keyword in line for keyword in ['Membaca PDF', 'Total halaman', 'Memproses halaman', 'Menyimpan PDF']):
-            print(line)
-    
+
+    # Let the compressor print straight through: main.js parses these lines live
+    # to drive the progress ring. Capturing them would freeze the UI at 0% until
+    # the whole compression is over.
+    success = compress_pdf_hybrid(input_path, output_path, image_quality=quality)
+
     # Check result
     if success and os.path.exists(output_path):
         compressed_size = os.path.getsize(output_path)
@@ -227,41 +356,78 @@ except Exception as e:
       const tempScriptPath = path.join(app.getPath('temp'), `compress_temp_${Date.now()}.py`);
       fs.writeFileSync(tempScriptPath, tempScript);
 
-      // Run Python script
-      const python = spawn('python', [tempScriptPath]);
-      
+      // Run Python script. When packaged, Ghostscript lives in extraResources,
+      // so point the compressor at it explicitly.
+      // -u keeps stdout unbuffered; without it Python holds the progress lines in
+      // a 8 KB pipe buffer and the UI sits at 0% until the run is over.
+      const python = spawn(pythonExec.command, [...pythonExec.args, '-u', tempScriptPath], {
+        // Stdout is a pipe here, so Windows would otherwise default to cp1252 and
+        // choke on the non-ASCII characters the compressor prints.
+        env: { ...process.env, PYTHONIOENCODING: 'utf-8', ...ghostscriptEnv() },
+        windowsHide: true
+      });
+
+      activeCompressions.add(python);
+
       let output = '';
       let errorOutput = '';
+
+      // Per-page progress is printed with a trailing \r, so split on both line
+      // terminators and hold back the trailing fragment until the rest arrives.
+      let pending = '';
 
       python.stdout.on('data', (data) => {
         const dataStr = data.toString();
         output += dataStr;
-        
-        // Parse progress updates
-        const lines = dataStr.split('\n');
-        for (const line of lines) {
-          // Send progress updates to renderer
-          if (line.includes('Membaca PDF')) {
-            event.sender.send('compression-status', { status: 'reading', message: 'Reading PDF...' });
-          } else if (line.includes('Total halaman:')) {
-            const match = line.match(/Total halaman: (\d+)/);
+
+        pending += dataStr;
+        const segments = pending.split(/[\r\n]+/);
+        pending = segments.pop();
+
+        for (const line of segments) {
+          if (line.includes('Merender halaman')) {
+            const match = line.match(/Merender halaman (\d+)\/(\d+)/);
             if (match) {
-              event.sender.send('compression-status', { 
-                status: 'processing', 
-                message: 'Processing pages...', 
-                totalPages: parseInt(match[1]) 
+              event.sender.send('compression-status', {
+                status: 'rasterizing',
+                message: 'Rebuilding vector pages...',
+                currentPage: parseInt(match[1]),
+                totalPages: parseInt(match[2])
               });
             }
           } else if (line.includes('Memproses halaman')) {
             const match = line.match(/Memproses halaman (\d+)\/(\d+)/);
             if (match) {
-              event.sender.send('compression-status', { 
-                status: 'processing', 
+              event.sender.send('compression-status', {
+                status: 'processing',
                 message: 'Compressing images...',
                 currentPage: parseInt(match[1]),
                 totalPages: parseInt(match[2])
               });
             }
+          } else if (line.includes('Total halaman:')) {
+            const match = line.match(/Total halaman: (\d+)/);
+            if (match) {
+              event.sender.send('compression-status', {
+                status: 'processing',
+                message: 'Processing pages...',
+                totalPages: parseInt(match[1])
+              });
+            }
+          } else if (line.includes('Membaca PDF')) {
+            event.sender.send('compression-status', { status: 'reading', message: 'Reading PDF...' });
+          } else if (line.includes('Memeriksa halaman')) {
+            event.sender.send('compression-status', {
+              status: 'rasterizing',
+              message: 'Analyzing page content...'
+            });
+          } else if (line.includes('Engine Ghostscript')) {
+            // Second engine gives no per-page output, so announce the phase --
+            // otherwise the UI looks frozen for the whole Ghostscript pass.
+            event.sender.send('compression-status', {
+              status: 'optimizing',
+              message: 'Optimizing PDF structure...'
+            });
           } else if (line.includes('Menyimpan PDF')) {
             event.sender.send('compression-status', { status: 'saving', message: 'Saving compressed PDF...' });
           }
@@ -273,6 +439,7 @@ except Exception as e:
       });
 
       python.on('error', (error) => {
+        activeCompressions.delete(python);
         // Clean up temp file
         try {
           fs.unlinkSync(tempScriptPath);
@@ -283,11 +450,17 @@ except Exception as e:
       });
 
       python.on('close', (code) => {
+        activeCompressions.delete(python);
         // Clean up temp file
         try {
           fs.unlinkSync(tempScriptPath);
         } catch (e) {
           // Ignore cleanup errors
+        }
+
+        if (python.cancelled) {
+          reject(new Error('Compression cancelled'));
+          return;
         }
 
         console.log('Python exit code:', code);

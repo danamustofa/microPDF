@@ -57,7 +57,13 @@ sample*.pdf
 input/
 output/
 
+# Sample documents used for benchmarking - real data, keep them out of the repo
+docs/*.pdf
+
 # Temporary files
 temp/
 tmp/
 *.tmp
+
+# Vendored Ghostscript binaries (~40 MB) - fetch with scripts/fetch-ghostscript.ps1
+vendor/

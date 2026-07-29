@@ -1,6 +1,6 @@
 {
   "name": "micropdf",
-  "version": "2026.1.4",
+  "version": "2026.3.0",
   "description": "Simple and elegant PDF compression tool",
   "main": "electron/main.js",
   "scripts": {
@@ -36,6 +36,10 @@
       {
         "from": "compress_pdf.py",
         "to": "compress_pdf.py"
+      },
+      {
+        "from": "vendor/ghostscript",
+        "to": "ghostscript"
       }
     ],
     "win": {
