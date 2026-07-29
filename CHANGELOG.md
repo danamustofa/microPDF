@@ -5,6 +5,80 @@ All notable changes to microPDF will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2026.3.0] - 2026-07-29
+
+### Added - Raster Engine
+- 🧱 **Third engine for outlined-vector pages**: `compress_pdf_raster()` re-renders
+  pages whose text was converted to paths as 150 dpi indexed-colour images, and
+  copies every other page through untouched. On a 206-page tax form it turns a
+  4.50% result into **61.16%** (46.90 MB → 18.22 MB)
+- 🔎 **Page classification**: `detect_outline_pages()` flags pages with a large
+  content stream and no text-showing operators. Text ops are counted by inflating
+  only the first 256 KB of each stream — decompressing them whole costs more time
+  than the rendering does
+- 🧮 **PNG IDAT passthrough**: `_png_to_pdf_image()` lifts Pillow's compressed
+  scanlines straight into a PDF image XObject as `/FlateDecode` + `/Predictor 15`.
+  Saving the same page through Pillow's own PDF writer costs 4.9 MB; this costs 43 KB
+- 🛡️ **Conservative by default**: the engine skips the file unless such pages make
+  up ≥25% of it, and its output still has to win on size and pass `validate_output()`
+
+### Fixed
+- 🐛 **Compression stuck at 0%**: the Electron bridge captured Python's stdout in a
+  `StringIO` and only replayed the progress lines after the run finished, so a
+  143-second job showed "Starting…" the whole way. Progress now streams live —
+  `-u` on the interpreter, and `\r` treated as a line break like `\n`
+- 🐛 **`python` resolving to the Microsoft Store stub**: `resolvePython()` in
+  `electron/main.js` probes `py -3`, `python`, `python3` and the usual install
+  directories, keeps the first interpreter that can import PyPDF2 and Pillow, and
+  reports the exact `pip install` command when none can (was: `exit code 9009`)
+- 🐛 **Cancel did nothing**: it only stopped the queue while the current file kept
+  compressing. The `cancel-compression` IPC now kills the Python process tree,
+  Ghostscript child included
+- 🐛 **cp1252 crash on Windows**: piped stdout defaulted to the ANSI codepage and
+  `UnicodeEncodeError`'d on the `✓`/`✗` the compressor prints, silently failing the
+  images engine. The spawn now sets `PYTHONIOENCODING=utf-8`
+
+## [2026.2.0] - 2026-07-29
+
+### Added - Hybrid Compression Engine
+- 🔀 **Two engines, best result wins**: every file is now run through both the
+  existing images engine (PyPDF2 + Pillow) and a new Ghostscript engine, and the
+  smaller *valid* result is kept — `compress_pdf_hybrid()`
+- 🖨️ **Ghostscript engine**: `compress_pdf_ghostscript()` rewrites page content
+  streams, which the images engine cannot touch. Quality 1–100 maps to image DPI
+  via `_DPI_ANCHORS`, calibrated against `/screen` (72), `/ebook` (150) and
+  `/printer` (300)
+- 🛡️ **Output validation**: `validate_output()` rejects a candidate unless the
+  engine exited cleanly, the PDF is readable, the **page count matches the
+  source**, and the file is genuinely smaller
+- 📦 **Bundled Ghostscript**: shipped via `extraResources`; `scripts/fetch-ghostscript.ps1`
+  downloads and prunes it into gitignored `vendor/` (~40 MB)
+- 🔍 **Binary discovery**: `find_ghostscript()` checks `MICROPDF_GS`, then `vendor/`,
+  then PATH, then the usual Windows install locations
+
+### Fixed
+- 🐛 **Vector/text PDFs barely compressed**: the images engine only touches image
+  XObjects, so a 46.90 MB vector PDF (74% content streams) shrank by just 0.38%.
+  The Ghostscript engine takes it to 4.50%
+- 🐛 **Silent data loss**: Ghostscript can exit with an error yet still write a
+  file. On a 31 MB / 286-page document it produced a 20 KB, 1-page PDF — which a
+  size-only comparison would have reported as "99.9% compression". The page-count
+  check now catches this
+- 🐛 **Same-size output presented as success**: when no engine can improve a file,
+  the original is copied through and reported as already optimised
+
+### Changed
+- 🔁 Electron and the CLI (`compress.py`) both call `compress_pdf_hybrid()`;
+  `batch_compress_pdfs()` gained a `'hybrid'` method
+- 📝 README compression figures replaced with measured results for both a scanned
+  and a vector document, plus the Ghostscript AGPL notice
+
+### Notes
+- ⚖️ **Licensing**: Ghostscript is AGPLv3, not MIT. Redistributing a build that
+  bundles it must comply with the AGPL or use a commercial Artifex licence.
+  Deleting `vendor/` degrades microPDF gracefully to the images engine
+- ⏱️ Running two engines roughly doubles worst-case time (46.90 MB file: ~97 s)
+
 ## [2026.1.3-final] - 2026-04-30
 
 ### Changed - Documentation Reorganization

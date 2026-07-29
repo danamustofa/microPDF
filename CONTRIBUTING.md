@@ -93,7 +93,7 @@ docs(readme): update installation instructions
 
 ### Before Submitting
 
-1. Check if the bug has already been reported in [Issues](https://github.com/yourusername/micropdf/issues)
+1. Check if the bug has already been reported in [Issues](https://github.com/danamustofa/microPDF/issues)
 2. Try to reproduce the bug with the latest version
 3. Collect relevant information (OS, version, error messages)
 
@@ -218,11 +218,16 @@ Describe the tests you ran.
 ```
 docs/
 ├── INDEX.md              # Documentation index
-├── ELECTRON_GUIDE.md     # Desktop app guide
-├── TECHNICAL_DETAILS.md  # Technical documentation
+├── ELECTRON_GUIDE.md     # Desktop app guide + troubleshooting
+├── TECHNICAL_DETAILS.md  # Engines, IPC, measured timings
+├── README.md             # Python API reference
 ├── QUICK_START.md        # Quick start guide
-└── USAGE_EXAMPLES.md     # CLI examples
+├── USAGE_EXAMPLES.md     # CLI examples
+├── PROJECT_INFO.md       # Project structure
+└── CHANGELOG.md          # Archived CLI-era changelog
 ```
+
+Release notes go in the **root** `CHANGELOG.md`, not `docs/CHANGELOG.md`.
 
 ## 🧪 Testing
 
@@ -252,6 +257,22 @@ Before submitting a PR, test:
 - [ ] UI is responsive
 - [ ] Compression produces valid PDFs
 - [ ] Statistics are accurate
+
+### Touching the compression engines
+
+`compress_pdf_hybrid()` runs three engines and keeps the smallest *validated*
+result, so a change to one engine can quietly stop it from ever winning. Test with
+at least one of each document type:
+
+- [ ] A scan / image-heavy PDF → the **images** engine should win
+- [ ] A print-to-PDF file with outlined text → the **raster** engine should win,
+      and pages that do have real text must come out byte-identical
+- [ ] A normal text PDF → the **raster** engine must report that it skipped
+- [ ] Page count in the output matches the source in every case
+
+`validate_output()` is the safety net that makes this workable - never let a
+candidate through without it. Ghostscript can exit successfully and still write a
+truncated PDF.
 
 ## 🎨 UI/UX Guidelines
 
@@ -309,7 +330,7 @@ npm run build
 ### Getting Help
 
 - Check [Documentation](docs/INDEX.md)
-- Search [Issues](https://github.com/yourusername/micropdf/issues)
+- Search [Issues](https://github.com/danamustofa/microPDF/issues)
 - Ask questions in discussions
 
 ## 📞 Contact

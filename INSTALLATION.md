@@ -6,7 +6,7 @@ This guide will help you install microPDF on your system.
 
 ### Step 1: Go to Releases Page
 
-Visit the [Releases page](https://github.com/yourusername/micropdf/releases) on GitHub.
+Visit the [Releases page](https://github.com/danamustofa/microPDF/releases) on GitHub.
 
 ### Step 2: Download for Your Platform
 
@@ -86,8 +86,12 @@ Install the following software:
    - Verify: `node --version`
 
 2. **Python** (v3.8 or higher)
-   - Download from [python.org](https://www.python.org/)
-   - Verify: `python --version`
+   - Download from [python.org](https://www.python.org/), ticking
+     **"Add python.exe to PATH"**
+   - Verify: `python --version` — on Windows, if this prints *"Python was not
+     found; run without arguments to install from the Microsoft Store"*, you are
+     hitting the Store stub. Try `py -3 --version` instead; microPDF probes for a
+     real interpreter on its own, but `pip` and the CLI need the working command
 
 3. **Git**
    - Download from [git-scm.com](https://git-scm.com/)
@@ -98,8 +102,8 @@ Install the following software:
 #### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/micropdf.git
-cd micropdf
+git clone https://github.com/danamustofa/microPDF.git
+cd microPDF
 ```
 
 #### 2. Install Dependencies
@@ -112,9 +116,23 @@ npm install
 **Python dependencies:**
 ```bash
 pip install -r requirements.txt
+# Windows, if `pip` or `python` misbehaves:
+py -3 -m pip install -r requirements.txt
 ```
 
-#### 3. Run the Application
+#### 3. Fetch Ghostscript (recommended, ~40 MB)
+
+Two of the three compression engines call Ghostscript. Without it microPDF still
+runs, but falls back to the images engine alone.
+
+```bash
+powershell -ExecutionPolicy Bypass -File scripts\fetch-ghostscript.ps1
+```
+
+The binaries land in `vendor/`, which is gitignored - re-run this after a fresh
+clone or a cleanup.
+
+#### 4. Run the Application
 
 ```bash
 npm start
@@ -260,8 +278,8 @@ sudo apt install python3-dev python3-pip build-essential
 If you encounter issues:
 
 1. Check the [Troubleshooting Guide](docs/ELECTRON_GUIDE.md#-troubleshooting)
-2. Search [existing issues](https://github.com/yourusername/micropdf/issues)
-3. Create a [new issue](https://github.com/yourusername/micropdf/issues/new)
+2. Search [existing issues](https://github.com/danamustofa/microPDF/issues)
+3. Create a [new issue](https://github.com/danamustofa/microPDF/issues/new)
 
 ---
 

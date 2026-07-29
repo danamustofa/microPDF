@@ -10,7 +10,7 @@ Complete project structure, cleanup history, and maintenance guide.
 ## 🌳 Project Structure
 
 ```
-compresfile/
+microPDF/
 │
 ├── 📂 .github/                    # GitHub configuration
 │   ├── ISSUE_TEMPLATE/           # Bug & feature templates
@@ -22,23 +22,31 @@ compresfile/
 │   ├── ELECTRON_GUIDE.md         # Desktop app guide
 │   ├── QUICK_START.md            # CLI quick start
 │   ├── USAGE_EXAMPLES.md         # CLI examples
-│   ├── TECHNICAL_DETAILS.md      # Technical docs
+│   ├── TECHNICAL_DETAILS.md      # Technical docs (engines, IPC, timings)
 │   ├── BUG_FIXES.md              # Bug fixes history
 │   ├── CUSTOM_QUALITY.md         # Custom quality feature
+│   ├── PERBAIKAN_KOMPRESI.md     # Compression fixes history
+│   ├── SUMMARY_UPDATE.md         # Update summaries
+│   ├── CHANGELOG.md              # Archived CLI-era changelog
 │   ├── PROJECT_INFO.md           # This file
 │   └── README.md                 # API reference
 │
 ├── 📂 electron/                   # Electron app source
 │   ├── assets/                   # Icons (PNG, ICO, ICNS)
 │   ├── index.html                # Main HTML
-│   ├── main.js                   # Main process
+│   ├── main.js                   # Main process (spawns Python, IPC, cancel)
 │   ├── preload.js                # Preload script
 │   ├── renderer.js               # Renderer process
 │   └── styles.css                # Styles
 │
+├── 📂 scripts/                    # Build/setup helpers
+│   └── fetch-ghostscript.ps1     # Downloads & prunes vendor/ghostscript
+│
+├── 📂 vendor/                     # Ghostscript binaries (gitignored, ~40 MB)
+│
 ├── 📄 .gitignore                  # Git ignore rules
 ├── 📄 CHANGELOG.md                # Version history
-├── 📄 compress_pdf.py             # Core compression library
+├── 📄 compress_pdf.py             # Core library - 3 engines + validation
 ├── 📄 compress.py                 # CLI script
 ├── 📄 CONTRIBUTING.md             # Contribution guide
 ├── 📄 INSTALLATION.md             # Installation guide
@@ -47,6 +55,18 @@ compresfile/
 ├── 📄 README.md                   # Main documentation
 └── 📄 requirements.txt            # Python dependencies
 ```
+
+### compress_pdf.py at a glance
+
+| Fungsi | Peran |
+|--------|-------|
+| `compress_pdf_hybrid()` | Orkestrator - jalankan 3 engine, pilih hasil valid terkecil |
+| `compress_pdf_images()` | Engine 1 - kompresi ulang XObject gambar |
+| `compress_pdf_ghostscript()` | Engine 2 - tulis ulang dokumen lewat pdfwrite |
+| `compress_pdf_raster()` | Engine 3 - render halaman ber-outline jadi gambar indexed |
+| `detect_outline_pages()` | Deteksi halaman vektor tanpa teks |
+| `validate_output()` | Gerbang: terbaca, jumlah halaman sama, benar lebih kecil |
+| `find_ghostscript()` | Cari binary gs (env → vendor → PATH → instalasi umum) |
 
 ---
 

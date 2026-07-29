@@ -1,4 +1,9 @@
-# Changelog
+# Changelog (arsip CLI)
+
+> Berkas ini menyimpan riwayat era **CLI Python**, sebelum microPDF jadi aplikasi
+> desktop. Riwayat versi yang berlaku sekarang ada di
+> **[../CHANGELOG.md](../CHANGELOG.md)** — termasuk engine hybrid (2026.2.0) dan
+> engine raster (2026.3.0).
 
 ## [2.0.0] - 2026-04-22
 

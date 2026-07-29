@@ -2,8 +2,8 @@
 
 Selamat datang di dokumentasi microPDF - aplikasi kompresi PDF yang simple, cepat, dan elegan.
 
-**Version**: 2026.1.3 (with custom quality)  
-**Last Updated**: April 30, 2026
+**Version**: 2026.3.0 (three-engine hybrid)  
+**Last Updated**: July 29, 2026
 
 ---
 
@@ -152,12 +152,13 @@ python compress.py -b input_folder output_folder 70
 ## ✨ Fitur Utama
 
 ### Desktop Application
+- 🔀 3 engine kompresi, hasil valid terkecil yang dipakai
 - 🖱️ Drag & drop interface
 - 📦 Batch processing (multiple files)
 - 🎚️ 6 quality options (90%, 80%, 70%, 60%, 50%, Custom 1-49%)
-- 📊 Real-time progress dengan page counter
+- 📊 Progres per halaman + tombol Cancel yang benar-benar berhenti
 - 📁 Custom output folder
-- 📈 Compression statistics
+- 📈 Compression statistics & riwayat
 - 🎨 Modern blue theme
 
 ### CLI Script
@@ -182,16 +183,16 @@ Jika Anda mengalami masalah:
 
 ## 📝 Catatan Versi
 
-**Version**: 2026.1.3 (with custom quality)  
-**Last Updated**: April 30, 2026  
+**Version**: 2026.3.0 (three-engine hybrid)  
+**Last Updated**: July 29, 2026  
 **Total Docs**: 9 files (organized in docs/)
 
 ### Perubahan Terbaru
-- ✅ Perbaikan 7 critical bugs
-- ✅ Fitur custom quality (1-49%)
-- ✅ Konsolidasi dokumentasi
-- ✅ Struktur lebih rapi dan terorganisir
-- ✅ Navigasi lebih mudah
+- ✅ Engine ketiga (**raster**) untuk PDF yang teksnya di-outline — 46,90 MB → 18,22 MB
+- ✅ Progres kini mengalir per halaman, tidak lagi diam di 0%
+- ✅ Tombol Cancel benar-benar menghentikan proses (termasuk Ghostscript)
+- ✅ Pencarian interpreter Python otomatis (tidak lagi kena stub Microsoft Store)
+- ✅ Perbaikan 7 critical bugs & fitur custom quality (1-49%)
 
 ---
 

@@ -1,5 +1,12 @@
 # Quick Start Guide
 
+> **Windows**: pakai `py -3` sebagai ganti `python`. Perintah `python` sering
+> mengarah ke stub Microsoft Store yang langsung gagal dengan kode 9009.
+> Aplikasi desktopnya menangani ini sendiri; CLI-nya tidak.
+
+CLI memakai `compress_pdf_hybrid()` — ketiga engine dijalankan dan hasil valid
+terkecil yang dipakai, sama seperti aplikasi desktop.
+
 ## Cara Tercepat Menggunakan PDF Compressor
 
 ### Opsi 1: Mode Interaktif (Paling Mudah)

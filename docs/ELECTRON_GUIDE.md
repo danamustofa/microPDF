@@ -159,14 +159,59 @@ background: linear-gradient(135deg, #00b091 0%, #054da2 100%);
 await window.electronAPI.getFileSize('C:\\path\\to\\file.pdf')
 ```
 
-### Compression Gagal
+### Compression Gagal: "exit code 9009 - Python was not found"
+
+Perintah `python` di PATH kena stub Microsoft Store, bukan Python asli. Stub itu
+cuma mencetak iklan Store lalu keluar dengan kode 9009.
 
 **Solusi:**
-1. Cek Python terinstall: `python --version`
-2. Install dependencies: `pip install -r requirements.txt`
-3. Test Python script manual:
+1. Cek Python asli yang terlihat: `py -0p` (biasanya ada meski `python` gagal)
+2. microPDF sebenarnya sudah menanganinya sendiri lewat `resolvePython()` — kalau
+   pesan ini tetap muncul, artinya tidak ada satu pun interpreter yang bisa
+   `import PyPDF2, PIL`
+3. Pasang dependensinya ke interpreter yang benar:
+   ```bash
+   py -3 -m pip install -r requirements.txt
+   ```
+4. Atau tunjuk interpreternya langsung:
+   ```powershell
+   $env:MICROPDF_PYTHON = "C:\Path\ke\python.exe"
+   npm start
+   ```
+5. Bisa juga matikan stub-nya: Settings → Apps → Advanced app settings →
+   App execution aliases → matikan `python.exe` dan `python3.exe`
+
+### Compression Gagal (umum)
+
+**Solusi:**
+1. Install dependencies: `py -3 -m pip install -r requirements.txt`
+2. Test Python script manual:
 ```bash
-python compress.py -s input.pdf output.pdf 75
+py -3 compress.py -s input.pdf output.pdf 75
+```
+3. Pesan error di UI menyebut engine mana yang gagal — semua engine boleh gagal
+   asal satu berhasil; kalau semua gagal, file asli disalin apa adanya
+
+### Progress Diam di 0% / "Starting…"
+
+Untuk PDF besar prosesnya memang lama (206 halaman ≈ 3 menit), tapi ring
+progresnya **harus** bergerak per halaman. Kalau benar-benar diam:
+
+1. Pastikan pakai versi 2026.3.0 atau lebih baru — versi lama menahan seluruh
+   output Python sampai proses selesai
+2. Buka DevTools (uncomment `openDevTools()` di `main.js`) dan lihat apakah event
+   `compression-status` masuk
+3. Tombol **Cancel** akan benar-benar menghentikan prosesnya, termasuk Ghostscript
+
+### Aplikasi Crash: "Cannot read properties of undefined (reading 'whenReady')"
+
+Terminal VS Code mewariskan `ELECTRON_RUN_AS_NODE=1`, jadi Electron jalan sebagai
+Node biasa dan `require('electron')` mengembalikan string.
+
+**Solusi:**
+```powershell
+Remove-Item Env:\ELECTRON_RUN_AS_NODE
+npm start
 ```
 
 ### Statistics Tidak Akurat
@@ -194,9 +239,16 @@ npm start
 ## 📊 Performance
 
 ### Compression Speed
-- Small file (1 MB): ~1-2 seconds
-- Medium file (10 MB): ~5-10 seconds
-- Large file (50 MB): ~20-30 seconds
+
+Ketiga engine dijalankan pada setiap file, jadi waktunya mengikuti jumlah halaman,
+bukan sekadar ukuran file:
+
+- File kecil (1 MB, beberapa halaman): ~2-5 detik
+- Scan 25 MB / 20 halaman: ~10 detik
+- Dokumen 47 MB / 206 halaman: ~3 menit
+
+Engine images yang paling lambat (±0,5 detik per halaman); engine raster melewati
+file yang bukan sasarannya dalam waktu di bawah satu detik.
 
 ### Memory Usage
 - Idle: ~100 MB

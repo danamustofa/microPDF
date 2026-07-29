@@ -1,5 +1,11 @@
 # ✅ GitHub Ready - Project Cleanup Summary
 
+> **Catatan**: berkas ini potret saat persiapan publikasi pertama (v2026.1.x).
+> Struktur folder dan daftar fitur di bawah **tidak lagi mutakhir** — sekarang ada
+> `scripts/`, `vendor/`, dan tiga engine kompresi. Rujukan terkini:
+> [README.md](README.md), [CHANGELOG.md](CHANGELOG.md), dan
+> [docs/PROJECT_INFO.md](docs/PROJECT_INFO.md).
+
 ## 🎉 Status: READY FOR PUBLICATION
 
 Project **microPDF** telah siap untuk dipublikasikan di GitHub!
